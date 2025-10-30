@@ -1,0 +1,17 @@
+{
+  "buildCommand": "prisma generate && next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["icn1"],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "NEXTAUTH_URL": "@nextauth_url",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "TOSS_CLIENT_KEY": "@toss_client_key",
+    "TOSS_SECRET_KEY": "@toss_secret_key",
+    "SLACK_BOT_TOKEN": "@slack_bot_token",
+    "SLACK_WEBHOOK_URL": "@slack_webhook_url",
+    "SLACK_SIGNING_SECRET": "@slack_signing_secret"
+  }
+}
