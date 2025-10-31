@@ -2,7 +2,8 @@
 // TODO: Install NextAuth.js
 // npm install next-auth
 
-import { NextAuthOptions } from "next-auth";
+// Uncomment when next-auth is installed:
+// import { NextAuthOptions } from "next-auth";
 
 // Example NextAuth configuration
 /*

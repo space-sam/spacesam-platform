@@ -75,7 +75,7 @@ export function TestimonialsSection() {
 
                 {/* Content */}
                 <p className="text-gray-700 dark:text-gray-300 text-lg mb-8 leading-relaxed transition-colors duration-300">
-                  "{testimonial.content}"
+                  &ldquo;{testimonial.content}&rdquo;
                 </p>
 
                 {/* Author */}

@@ -106,7 +106,7 @@ export interface TossPaymentResponse {
 export interface SlackNotification {
   channel: string;
   text: string;
-  blocks?: any[];
+  blocks?: Record<string, unknown>[];
 }
 
 export interface SlackWebhookPayload {

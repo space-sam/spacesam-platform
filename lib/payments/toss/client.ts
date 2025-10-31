@@ -14,7 +14,8 @@ export class TossPaymentsClient {
   /**
    * Request a payment
    */
-  async requestPayment(request: TossPaymentRequest) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async requestPayment(_request: TossPaymentRequest) {
     // This is called from the client side
     // Use Toss Payments SDK in the browser
     throw new Error("Use Toss Payments SDK on client side");

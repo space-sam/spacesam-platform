@@ -12,7 +12,7 @@ export class SlackClient {
   /**
    * Send a message using webhook (simpler, no token needed)
    */
-  async sendWebhookMessage(text: string, blocks?: any[]) {
+  async sendWebhookMessage(text: string, blocks?: Record<string, unknown>[]) {
     if (!this.webhookUrl) {
       console.error("Slack webhook URL not configured");
       return;
