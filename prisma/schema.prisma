@@ -40,6 +40,35 @@ enum FreelancerAvailability {
   UNAVAILABLE
 }
 
+enum SubscriptionPlan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  SIGNED
+  COMPLETED
+  CANCELLED
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
 // NextAuth Models
 model Account {
   id                String  @id @default(cuid())
@@ -98,12 +127,18 @@ model User {
   freelancerProfile FreelancerProfile?
 
   // Relations
-  clientProjects     Project[]         @relation("ClientProjects")
-  freelancerProjects Project[]         @relation("FreelancerProjects")
-  sentMessages       Message[]         @relation("SentMessages")
-  receivedMessages   Message[]         @relation("ReceivedMessages")
+  clientProjects     Project[]      @relation("ClientProjects")
+  freelancerProjects Project[]      @relation("FreelancerProjects")
+  sentMessages       Message[]      @relation("SentMessages")
+  receivedMessages   Message[]      @relation("ReceivedMessages")
   payments           Payment[]
   proposals          Proposal[]
+  subscriptions      Subscription[]
+  clientContracts    Contract[]     @relation("ClientContracts")
+  freelancerContracts Contract[]    @relation("FreelancerContracts")
+  organizedMeetings  Meeting[]      @relation("MeetingOrganizer")
+  attendedMeetings   Meeting[]      @relation("MeetingAttendees")
+  chatMessages       ChatMessage[]
 
   @@map("users")
 }
@@ -158,12 +193,14 @@ model Project {
   updatedAt    DateTime      @updatedAt
 
   // Relations
-  client     User                @relation("ClientProjects", fields: [clientId], references: [id], onDelete: Cascade)
-  freelancer User?               @relation("FreelancerProjects", fields: [freelancerId], references: [id], onDelete: SetNull)
-  milestones ProjectMilestone[]
-  payments   Payment[]
-  messages   Message[]
-  proposals  Proposal[]
+  client       User                @relation("ClientProjects", fields: [clientId], references: [id], onDelete: Cascade)
+  freelancer   User?               @relation("FreelancerProjects", fields: [freelancerId], references: [id], onDelete: SetNull)
+  milestones   ProjectMilestone[]
+  payments     Payment[]
+  messages     Message[]
+  proposals    Proposal[]
+  contracts    Contract[]
+  chatMessages ChatMessage[]
 
   @@index([clientId])
   @@index([freelancerId])
@@ -256,4 +293,100 @@ model Message {
   @@index([senderId])
   @@index([receiverId])
   @@map("messages")
+}
+
+// Subscription Models
+model Subscription {
+  id              String             @id @default(cuid())
+  userId          String
+  plan            SubscriptionPlan   @default(FREE)
+  status          SubscriptionStatus @default(INACTIVE)
+  startDate       DateTime           @default(now())
+  endDate         DateTime?
+  canceledAt      DateTime?
+  tossSubscriptionId String?         @unique
+  billingKey      String?
+  autoRenewal     Boolean            @default(true)
+  monthlyPrice    Decimal?           @db.Decimal(10, 2)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// Contract Models
+model Contract {
+  id              String         @id @default(cuid())
+  projectId       String
+  clientId        String
+  freelancerId    String
+  title           String
+  content         String         @db.Text
+  status          ContractStatus @default(DRAFT)
+  documentUrl     String? // URL to uploaded contract document
+  clientSignature String? // URL or data for client signature
+  freelancerSignature String? // URL or data for freelancer signature
+  clientSignedAt  DateTime?
+  freelancerSignedAt DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client     User    @relation("ClientContracts", fields: [clientId], references: [id], onDelete: Cascade)
+  freelancer User    @relation("FreelancerContracts", fields: [freelancerId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([clientId])
+  @@index([freelancerId])
+  @@index([status])
+  @@map("contracts")
+}
+
+// Meeting Models
+model Meeting {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?       @db.Text
+  scheduledAt     DateTime
+  duration        Int // Duration in minutes
+  status          MeetingStatus @default(SCHEDULED)
+  googleMeetLink  String?
+  googleEventId   String?       @unique
+  organizerId     String
+  notes           String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  organizer  User   @relation("MeetingOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  attendees  User[] @relation("MeetingAttendees")
+
+  @@index([organizerId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("meetings")
+}
+
+// Chat Models (for real-time messaging)
+model ChatMessage {
+  id         String   @id @default(cuid())
+  projectId  String
+  senderId   String
+  content    String   @db.Text
+  attachments String[] // URLs to attachments
+  read       Boolean  @default(false)
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("chat_messages")
 }
