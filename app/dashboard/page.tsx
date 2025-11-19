@@ -1,16 +1,17 @@
 import { getCurrentUser } from "@/lib/auth/config";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
-import { StatsCard } from "@/components/dashboard/stats-card";
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
-import { QuickActions } from "@/components/dashboard/quick-actions";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import {
   Briefcase,
-  DollarSign,
   MessageSquare,
   Calendar,
+  CreditCard,
+  User,
   TrendingUp,
-  Users,
+  ArrowRight,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -22,210 +23,364 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch dashboard data based on role
-  let stats;
-  let activities = [];
-
-  if (user.role === "CLIENT") {
-    // Client dashboard data
-    const projects = await prisma.project.findMany({
-      where: { clientId: user.id },
-      include: {
-        freelancer: true,
-        chatMessages: {
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          include: { sender: true },
-        },
-      },
-    });
-
-    const activeProjects = projects.filter((p) => p.status === "IN_PROGRESS");
-    const totalSpent = projects.reduce(
-      (sum, p) => sum + parseFloat(p.budget.toString()),
-      0
-    );
-    const unreadMessages = projects.reduce(
-      (sum, p) => sum + p.chatMessages.filter((m) => m.senderId !== user.id).length,
-      0
-    );
-
-    stats = {
-      activeProjects: activeProjects.length,
-      totalProjects: projects.length,
-      totalSpent,
-      unreadMessages,
-    };
-
-    // Build activities from recent messages
-    projects.forEach((project) => {
-      project.chatMessages.forEach((msg) => {
-        if (msg.senderId !== user.id) {
-          activities.push({
-            id: msg.id,
-            type: "message" as const,
-            title: `${msg.sender.name}님이 메시지를 보냈습니다`,
-            description: msg.content.substring(0, 100),
-            timestamp: msg.createdAt,
-            user: {
-              name: msg.sender.name || "Unknown",
-              image: msg.sender.image || undefined,
-            },
-            status: "success" as const,
-          });
-        }
-      });
-    });
-  } else if (user.role === "FREELANCER") {
-    // Freelancer dashboard data
-    const projects = await prisma.project.findMany({
-      where: { freelancerId: user.id },
-      include: {
-        client: true,
-        chatMessages: {
-          orderBy: { createdAt: "desc" },
-          take: 5,
-          include: { sender: true },
-        },
-      },
-    });
-
-    const activeProjects = projects.filter((p) => p.status === "IN_PROGRESS");
-    const totalEarnings = projects
-      .filter((p) => p.status === "COMPLETED")
-      .reduce((sum, p) => sum + parseFloat(p.budget.toString()), 0);
-    const unreadMessages = projects.reduce(
-      (sum, p) => sum + p.chatMessages.filter((m) => m.senderId !== user.id).length,
-      0
-    );
-
-    stats = {
-      activeProjects: activeProjects.length,
-      totalProjects: projects.length,
-      totalEarnings,
-      unreadMessages,
-    };
-
-    // Build activities
-    projects.forEach((project) => {
-      project.chatMessages.forEach((msg) => {
-        if (msg.senderId !== user.id) {
-          activities.push({
-            id: msg.id,
-            type: "message" as const,
-            title: `${msg.sender.name}님이 메시지를 보냈습니다`,
-            description: msg.content.substring(0, 100),
-            timestamp: msg.createdAt,
-            user: {
-              name: msg.sender.name || "Unknown",
-              image: msg.sender.image || undefined,
-            },
-            status: "success" as const,
-          });
-        }
-      });
-    });
-  } else {
-    // Unknown role, redirect to home
-    redirect("/");
-  }
-
-  // Sort activities by timestamp
-  activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  activities = activities.slice(0, 10); // Show only 10 most recent
+  const isClient = user.role === "CLIENT";
+  const isFreelancer = user.role === "FREELANCER";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-300 dark:to-white bg-clip-text text-transparent">
-            대시보드
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {user.role === "CLIENT"
-              ? "프로젝트를 관리하고 프리랜서와 협업하세요"
-              : "프로젝트 현황을 확인하고 클라이언트와 소통하세요"}
-          </p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatsCard
-            title={user.role === "CLIENT" ? "활성 프로젝트" : "진행 중인 프로젝트"}
-            value={stats.activeProjects}
-            description={`총 ${stats.totalProjects}개 프로젝트`}
-            icon={Briefcase}
-            gradient="from-blue-500 to-cyan-500"
-            trend={{ value: 12, isPositive: true }}
-          />
-          <StatsCard
-            title={user.role === "CLIENT" ? "총 지출" : "총 수익"}
-            value={`₩${(user.role === "CLIENT" ? stats.totalSpent : stats.totalEarnings).toLocaleString()}`}
-            description="누적 금액"
-            icon={DollarSign}
-            gradient="from-green-500 to-emerald-500"
-            trend={{ value: 8, isPositive: true }}
-          />
-          <StatsCard
-            title="안읽은 메시지"
-            value={stats.unreadMessages}
-            description="새 메시지 확인"
-            icon={MessageSquare}
-            gradient="from-purple-500 to-pink-500"
-          />
-          <StatsCard
-            title="예정된 미팅"
-            value={0}
-            description="이번 주"
-            icon={Calendar}
-            gradient="from-orange-500 to-red-500"
-          />
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick Actions - Full width on mobile, 2 cols on desktop */}
-          <div className="lg:col-span-2">
-            <QuickActions role={user.role} />
-          </div>
-
-          {/* Activity Feed */}
-          <div className="lg:col-span-1">
-            <ActivityFeed activities={activities} />
-          </div>
-        </div>
-
-        {/* Recent Projects Section */}
-        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl shadow-lg p-6 border-0">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              {user.role === "CLIENT" ? "내 프로젝트" : "진행 중인 프로젝트"}
-            </h2>
-            <a
-              href={user.role === "CLIENT" ? "/client/projects" : "/freelancer/projects"}
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-            >
-              전체 보기 →
-            </a>
-          </div>
-          {stats.totalProjects === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 mb-4">
-                <Briefcase className="w-8 h-8 text-gray-400" />
-              </div>
-              <p className="text-gray-500 dark:text-gray-400">
-                {user.role === "CLIENT"
-                  ? "아직 생성한 프로젝트가 없습니다"
-                  : "아직 할당된 프로젝트가 없습니다"}
-              </p>
+      <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Welcome Section */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-8 text-white shadow-2xl">
+          <div className="relative z-10">
+            <div className="flex items-center space-x-2 mb-2">
+              <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
+                {isClient ? "클라이언트" : isFreelancer ? "프리랜서" : user.role}
+              </Badge>
             </div>
-          ) : (
-            <p className="text-gray-600 dark:text-gray-400">
-              {stats.totalProjects}개의 프로젝트 진행 중
+            <h1 className="text-4xl font-bold mb-2">
+              환영합니다, {user.name || "사용자"}님!
+            </h1>
+            <p className="text-lg text-white/90">
+              {isClient
+                ? "프로젝트를 생성하고 최고의 프리랜서를 찾아보세요"
+                : isFreelancer
+                ? "새로운 프로젝트를 탐색하고 수익을 창출하세요"
+                : "SpaceSam 플랫폼에 오신 것을 환영합니다"}
             </p>
-          )}
+          </div>
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
         </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">프로젝트</CardTitle>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+                  <Briefcase className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">0</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {isClient ? "생성된 프로젝트" : "참여 중인 프로젝트"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">메시지</CardTitle>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">0</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                안읽은 메시지
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">
+                  {isClient ? "지출" : "수익"}
+                </CardTitle>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">₩0</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                총 {isClient ? "지출" : "수익"}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            빠른 시작
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isClient && (
+              <>
+                <Link href="/client/profile">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            프로필 관리
+                          </CardTitle>
+                          <CardDescription>
+                            프로필 정보를 업데이트하세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href="/client/projects">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                            내 프로젝트
+                          </CardTitle>
+                          <CardDescription>
+                            프로젝트를 관리하고 추적하세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                          <Briefcase className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href="/subscriptions">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                            구독 관리
+                          </CardTitle>
+                          <CardDescription>
+                            플랜을 업그레이드하세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                          <CreditCard className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href="/meetings">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                            미팅 예약
+                          </CardTitle>
+                          <CardDescription>
+                            Google Meet 미팅을 잡으세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              </>
+            )}
+
+            {isFreelancer && (
+              <>
+                <Link href="/freelancer/profile">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            프로필 관리
+                          </CardTitle>
+                          <CardDescription>
+                            포트폴리오를 업데이트하세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href="/freelancer/projects">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                            프로젝트 찾기
+                          </CardTitle>
+                          <CardDescription>
+                            새로운 기회를 탐색하세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                          <Briefcase className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href="/subscriptions">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                            구독 관리
+                          </CardTitle>
+                          <CardDescription>
+                            더 많은 기능을 사용하세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                          <CreditCard className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+
+                <Link href="/meetings">
+                  <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-lg transition-all cursor-pointer group">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                            미팅 일정
+                          </CardTitle>
+                          <CardDescription>
+                            클라이언트와 미팅하세요
+                          </CardDescription>
+                        </div>
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Getting Started Guide */}
+        <Card className="border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">시작하기</CardTitle>
+            <CardDescription>
+              SpaceSam 플랫폼을 최대한 활용하는 방법
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isClient ? (
+              <>
+                <div className="flex items-start space-x-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                  <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold mt-1">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      프로필 작성
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      회사 정보와 요구사항을 입력하세요
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                  <div className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold mt-1">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      프로젝트 생성
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      새 프로젝트를 만들고 프리랜서를 초대하세요
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 p-4 rounded-lg bg-green-50 dark:bg-green-950/20">
+                  <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold mt-1">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      협업 시작
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      채팅과 미팅으로 프리랜서와 소통하세요
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-start space-x-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                  <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold mt-1">
+                    1
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      프로필 완성
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      포트폴리오와 기술 스택을 추가하세요
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                  <div className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold mt-1">
+                    2
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      프로젝트 탐색
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      관심있는 프로젝트를 찾고 지원하세요
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 p-4 rounded-lg bg-green-50 dark:bg-green-950/20">
+                  <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold mt-1">
+                    3
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      수익 창출
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      프로젝트를 완료하고 수익을 받으세요
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
