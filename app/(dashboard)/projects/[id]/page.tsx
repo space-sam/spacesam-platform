@@ -2,9 +2,12 @@ import { getCurrentUser } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { ChatRoom } from "@/components/chat/chat-room";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
+
+export const dynamic = 'force-dynamic';
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
   const user = await getCurrentUser();
@@ -129,10 +132,12 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 <p className="text-sm text-gray-500 mb-2">클라이언트</p>
                 <div className="flex items-center space-x-2">
                   {project.client.image ? (
-                    <img
+                    <Image
                       src={project.client.image}
                       alt={project.client.name || "Client"}
-                      className="w-10 h-10 rounded-full"
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
                     <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full" />
@@ -149,10 +154,12 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                   <p className="text-sm text-gray-500 mb-2">프리랜서</p>
                   <div className="flex items-center space-x-2">
                     {project.freelancer.image ? (
-                      <img
+                      <Image
                         src={project.freelancer.image}
                         alt={project.freelancer.name || "Freelancer"}
-                        className="w-10 h-10 rounded-full"
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover"
                       />
                     ) : (
                       <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full" />

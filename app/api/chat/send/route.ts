@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { sendChatMessage } from "@/lib/pusher/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();

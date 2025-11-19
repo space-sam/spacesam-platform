@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 
+export const dynamic = 'force-dynamic';
+
 // Create contract
 export async function POST(request: NextRequest) {
   try {
@@ -96,7 +98,12 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update signature
-    const updateData: any = {};
+    const updateData: {
+      clientSignature?: string;
+      clientSignedAt?: Date;
+      freelancerSignature?: string;
+      freelancerSignedAt?: Date;
+    } = {};
     if (isClient) {
       updateData.clientSignature = signature;
       updateData.clientSignedAt = new Date();

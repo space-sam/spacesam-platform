@@ -34,7 +34,7 @@ export default function LoginPage() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setError("로그인 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
@@ -45,7 +45,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signIn("google", { callbackUrl: "/dashboard" });
-    } catch (error) {
+    } catch {
       setError("Google 로그인 중 오류가 발생했습니다.");
       setIsLoading(false);
     }

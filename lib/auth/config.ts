@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ account }) {
       // If signing in with Google OAuth
       if (account?.provider === "google") {
         // Store the access token and refresh token for Google Calendar API
@@ -84,7 +84,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async session({ session, token, user }) {
+    async session({ session }) {
       if (session.user) {
         // Add custom fields to session
         const dbUser = await prisma.user.findUnique({
@@ -104,11 +104,8 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
-        token.role = user.role;
-      }
+    async jwt({ token, account }) {
+      // User data is already in token from session callback
 
       // Store access token in JWT for Google Calendar API
       if (account?.access_token) {
@@ -136,7 +133,7 @@ export async function getCurrentUser() {
     const { getServerSession } = await import("next-auth");
     const session = await getServerSession(authOptions);
     return session?.user || null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

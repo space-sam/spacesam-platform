@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { SubscriptionPlans } from "@/components/subscriptions/subscription-plans";
 import { CurrentSubscription } from "@/components/subscriptions/current-subscription";
 
+export const dynamic = 'force-dynamic';
+
 export default async function SubscriptionsPage() {
   const user = await getCurrentUser();
 

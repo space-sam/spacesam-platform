@@ -1,10 +1,12 @@
-import { getCurrentUser, requireAuth } from "@/lib/auth/config";
+import { requireAuth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { UserRole } from "@prisma/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
+
+export const dynamic = 'force-dynamic';
 
 export default async function ClientProjectsPage() {
   const user = await requireAuth(UserRole.CLIENT);

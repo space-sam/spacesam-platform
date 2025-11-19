@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 interface SubscriptionPlansProps {
   currentPlan: string;
-  userId: string;
+  userId?: string;
 }
 
 const plans = [
@@ -63,7 +63,7 @@ const plans = [
   },
 ];
 
-export function SubscriptionPlans({ currentPlan, userId }: SubscriptionPlansProps) {
+export function SubscriptionPlans({ currentPlan }: SubscriptionPlansProps) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -86,7 +86,7 @@ export function SubscriptionPlans({ currentPlan, userId }: SubscriptionPlansProp
         } else {
           alert("플랜 변경에 실패했습니다.");
         }
-      } catch (error) {
+      } catch {
         alert("오류가 발생했습니다.");
       } finally {
         setLoading(null);
@@ -119,7 +119,7 @@ export function SubscriptionPlans({ currentPlan, userId }: SubscriptionPlansProp
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       }
-    } catch (error) {
+    } catch {
       alert("구독 처리 중 오류가 발생했습니다.");
       setLoading(null);
     }

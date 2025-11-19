@@ -1,8 +1,10 @@
-import { getCurrentUser, requireAuth } from "@/lib/auth/config";
+import { requireAuth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { ClientProfileForm } from "@/components/profile/client-profile-form";
+
+export const dynamic = 'force-dynamic';
 
 export default async function ClientProfilePage() {
   const user = await requireAuth(UserRole.CLIENT);

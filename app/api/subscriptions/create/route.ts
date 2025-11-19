@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -11,9 +13,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { plan, price } = await request.json();
-
-    // Create order ID
-    const orderId = `SUB_${user.id}_${Date.now()}`;
 
     // Create pending subscription
     const subscription = await prisma.subscription.create({

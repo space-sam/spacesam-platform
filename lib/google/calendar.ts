@@ -84,9 +84,9 @@ export async function createMeetingWithGoogleMeet(
       meetLink: meetLink || null,
       htmlLink: response.data.htmlLink,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Google Meet creation error:", error);
-    throw new Error(`Google Meet 생성 실패: ${error.message}`);
+    throw new Error(`Google Meet 생성 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
   }
 }
 
@@ -101,8 +101,8 @@ export async function cancelGoogleMeeting(userId: string, eventId: string) {
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Google Meet cancellation error:", error);
-    throw new Error(`미팅 취소 실패: ${error.message}`);
+    throw new Error(`미팅 취소 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
   }
 }

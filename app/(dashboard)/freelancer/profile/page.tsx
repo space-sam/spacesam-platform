@@ -1,8 +1,10 @@
-import { getCurrentUser, requireAuth } from "@/lib/auth/config";
+import { requireAuth } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { FreelancerProfileForm } from "@/components/profile/freelancer-profile-form";
+
+export const dynamic = 'force-dynamic';
 
 export default async function FreelancerProfilePage() {
   const user = await requireAuth(UserRole.FREELANCER);

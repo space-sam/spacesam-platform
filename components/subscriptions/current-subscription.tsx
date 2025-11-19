@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { Decimal } from "@prisma/client/runtime/library";
 
 interface CurrentSubscriptionProps {
   subscription: {
@@ -11,7 +12,7 @@ interface CurrentSubscriptionProps {
     status: string;
     startDate: Date;
     endDate: Date | null;
-    monthlyPrice: any;
+    monthlyPrice: Decimal | string | number | null;
     autoRenewal: boolean;
   };
 }
@@ -32,7 +33,7 @@ export function CurrentSubscription({ subscription }: CurrentSubscriptionProps) 
       } else {
         alert("구독 취소에 실패했습니다.");
       }
-    } catch (error) {
+    } catch {
       alert("구독 취소 중 오류가 발생했습니다.");
     }
   };
@@ -59,7 +60,7 @@ export function CurrentSubscription({ subscription }: CurrentSubscriptionProps) 
           <div>
             <p className="text-sm text-gray-500">월 요금</p>
             <p className="font-semibold">
-              {subscription.monthlyPrice ? `₩${parseInt(subscription.monthlyPrice).toLocaleString()}` : "무료"}
+              {subscription.monthlyPrice ? `₩${parseInt(subscription.monthlyPrice.toString()).toLocaleString()}` : "무료"}
             </p>
           </div>
           <div>

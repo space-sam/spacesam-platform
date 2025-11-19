@@ -18,10 +18,10 @@ interface ClientProfile {
 
 interface ClientProfileFormProps {
   profile: ClientProfile;
-  userId: string;
+  userId?: string;
 }
 
-export function ClientProfileForm({ profile, userId }: ClientProfileFormProps) {
+export function ClientProfileForm({ profile }: ClientProfileFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,7 +56,7 @@ export function ClientProfileForm({ profile, userId }: ClientProfileFormProps) {
 
       setSuccess(true);
       router.refresh();
-    } catch (error) {
+    } catch {
       setError("프로필 업데이트 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);

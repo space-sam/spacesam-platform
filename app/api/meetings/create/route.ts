@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth/config";
 import { prisma } from "@/lib/db";
 import { createMeetingWithGoogleMeet } from "@/lib/google/calendar";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -77,10 +79,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ meeting });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Meeting creation error:", error);
     return NextResponse.json(
-      { error: error.message || "미팅 생성 중 오류가 발생했습니다." },
+      { error: error instanceof Error ? error.message : "미팅 생성 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
+import Image from "next/image";
 
 interface Message {
   id: string;
@@ -79,7 +80,7 @@ export function ChatRoom({ projectId, currentUserId, initialMessages }: ChatRoom
       } else {
         alert("메시지 전송에 실패했습니다.");
       }
-    } catch (error) {
+    } catch {
       alert("메시지 전송 중 오류가 발생했습니다.");
     } finally {
       setIsSending(false);
@@ -106,10 +107,12 @@ export function ChatRoom({ projectId, currentUserId, initialMessages }: ChatRoom
                   {/* Avatar */}
                   <div className="flex-shrink-0">
                     {message.senderImage ? (
-                      <img
+                      <Image
                         src={message.senderImage}
                         alt={message.senderName}
-                        className="w-8 h-8 rounded-full"
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover"
                       />
                     ) : (
                       <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium">

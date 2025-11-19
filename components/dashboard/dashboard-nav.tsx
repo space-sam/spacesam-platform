@@ -5,15 +5,13 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import {
-  LayoutDashboard,
   User,
   Briefcase,
-  MessageSquare,
   Settings,
   LogOut,
   CreditCard,
-  FileText
 } from "lucide-react";
 
 interface DashboardNavProps {
@@ -62,10 +60,12 @@ export function DashboardNav({ user }: DashboardNavProps) {
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
             {user.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt={user.name || "User"}
-                className="w-10 h-10 rounded-full"
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
               <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">

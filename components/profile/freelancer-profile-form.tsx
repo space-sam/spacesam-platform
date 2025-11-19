@@ -9,11 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, X, Save } from "lucide-react";
 
+import { Decimal } from "@prisma/client/runtime/library";
+
 interface FreelancerProfile {
   id: string;
   bio: string | null;
   skills: string[];
-  hourlyRate: any;
+  hourlyRate: Decimal | string | number | null;
   portfolio: string[];
   availability: string;
   experience: string | null;
@@ -23,10 +25,10 @@ interface FreelancerProfile {
 
 interface FreelancerProfileFormProps {
   profile: FreelancerProfile;
-  userId: string;
+  userId?: string;
 }
 
-export function FreelancerProfileForm({ profile, userId }: FreelancerProfileFormProps) {
+export function FreelancerProfileForm({ profile }: FreelancerProfileFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -96,7 +98,7 @@ export function FreelancerProfileForm({ profile, userId }: FreelancerProfileForm
 
       setSuccess(true);
       router.refresh();
-    } catch (error) {
+    } catch {
       setError("프로필 업데이트 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
