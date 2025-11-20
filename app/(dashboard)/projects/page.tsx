@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { TopNav } from "@/components/layout/top-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,15 +28,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-
-// Demo user
-const DEMO_USER = {
-  id: "demo-user-123",
-  name: "테스트 사용자",
-  email: "demo@spacesam.com",
-  role: "CLIENT" as const,
-  image: null,
-};
 
 // Demo projects
 const DEMO_PROJECTS = [
@@ -186,10 +176,7 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      <TopNav user={DEMO_USER} />
-
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -475,6 +462,5 @@ export default function ProjectsPage() {
           </Card>
         )}
       </div>
-    </div>
   );
 }

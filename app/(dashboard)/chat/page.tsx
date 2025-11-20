@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { TopNav } from "@/components/layout/top-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +14,6 @@ import {
   Phone,
   Video,
   Smile,
-  Check,
   CheckCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -177,10 +175,7 @@ export default function ChatPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <TopNav user={DEMO_USER} />
-
-      <div className="h-[calc(100vh-4rem)] flex">
+    <div className="flex" style={{ height: 'calc(100vh - 12rem)' }}>
         {/* Sidebar - Chat Rooms List */}
         <div className="w-80 border-r bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col">
           {/* Sidebar Header */}
@@ -404,6 +399,5 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
