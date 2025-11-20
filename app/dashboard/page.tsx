@@ -1,5 +1,6 @@
 // import { getCurrentUser } from "@/lib/auth/config";
 // import { redirect } from "next/navigation";
+import { TopNav } from "@/components/layout/top-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,7 +32,7 @@ const DEMO_USER: {
   image: null,
 };
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
   // DEMO MODE: Comment out authentication checks
   // const user = await getCurrentUser();
   // if (!user) {
@@ -45,7 +46,9 @@ export default async function DashboardPage() {
   const isFreelancer = user.role === "FREELANCER";
 
   return (
-    <div className="space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <TopNav user={user} />
+      <div className="max-w-6xl mx-auto p-6 space-y-8">
         {/* Demo Mode Banner */}
         <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
           <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -407,5 +410,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+    </div>
   );
 }
