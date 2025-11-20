@@ -1,8 +1,9 @@
-import { getCurrentUser } from "@/lib/auth/config";
-import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
+// import { getCurrentUser } from "@/lib/auth/config";
+// import { redirect } from "next/navigation";
+import { TopNav } from "@/components/layout/top-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import {
   Briefcase,
@@ -11,24 +12,51 @@ import {
   CreditCard,
   User,
   TrendingUp,
-  ArrowRight,
+  AlertCircle,
 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
-  const user = await getCurrentUser();
+// DEMO MODE: Mock user data for testing UI without authentication
+const DEMO_USER: {
+  id: string;
+  name: string;
+  email: string;
+  role: "CLIENT" | "FREELANCER";
+  image: string | null;
+} = {
+  id: "demo-user-123",
+  name: "테스트 사용자",
+  email: "demo@spacesam.com",
+  role: "CLIENT", // Change to "FREELANCER" to test freelancer view
+  image: null,
+};
 
-  if (!user) {
-    redirect("/login");
-  }
+export default async function DashboardPage() {
+  // DEMO MODE: Comment out authentication checks
+  // const user = await getCurrentUser();
+  // if (!user) {
+  //   redirect("/login");
+  // }
+
+  // Use demo user data instead
+  const user = DEMO_USER;
 
   const isClient = user.role === "CLIENT";
   const isFreelancer = user.role === "FREELANCER";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      <TopNav user={user} />
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Demo Mode Banner */}
+        <Alert className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-amber-800 dark:text-amber-200">
+            <span className="font-semibold">데모 모드</span> - 인증이 비활성화되었습니다. UI 테스트용입니다.
+          </AlertDescription>
+        </Alert>
+
         {/* Welcome Section */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-8 text-white shadow-2xl">
           <div className="relative z-10">
